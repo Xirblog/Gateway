@@ -11,6 +11,8 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: false)
     .AddEnvironmentVariables();
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
