@@ -1,3 +1,4 @@
+using Gateway.Presentation.Rest.Posts.Extensions;
 using Gateway.Presentation.Rest.Users.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
@@ -5,7 +6,9 @@ using Scalar.AspNetCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRestUsers(builder.Configuration);
+builder.Services
+    .AddRestUsers(builder.Configuration)
+    .AddRestPosts(builder.Configuration);
 
 WebApplication app = builder.Build();
 

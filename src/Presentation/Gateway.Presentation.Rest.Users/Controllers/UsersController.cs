@@ -1,6 +1,7 @@
 using Gateway.Presentation.Rest.Users.Models;
 using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using UserService.Presentation.Grpc.Protos;
@@ -42,13 +43,13 @@ public class UsersController : ControllerBase
                 response.Age));
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> FindUserById(string id, CancellationToken cancellationToken)
+    [HttpGet("{userId}")]
+    public async Task<IActionResult> FindUserById(Guid userId, CancellationToken cancellationToken)
     {
         try
         {
             FindUserByIdResponse response = await _userServiceClient.FindUserByIdAsync(
-                new FindUserByIdRequest { UserId = id },
+                new FindUserByIdRequest { UserId = userId.ToString() },
                 new CallOptions(cancellationToken: cancellationToken));
 
             return Ok(new UserDto(
