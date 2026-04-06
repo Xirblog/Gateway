@@ -1,0 +1,13 @@
+<Solution>
+  
+  <Folder Name="/common/">
+    <File Path="Directory.Build.props"/>
+    <File Path="Directory.Packages.props"/>
+    <File Path=".editorconfig"/>
+  </Folder>
+  
+  <Folder Name="/src/">
+    <Project Path="src/Gateway/Gateway.csproj" />
+  </Folder>
+  
+</Solution>
