@@ -12,6 +12,8 @@
         <PackageVersion Include="SourceKit.Generators.Builder" Version="1.2.50"/>
         <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.507"/>
         <PackageVersion Include="Itmo.Dev.Editorconfig" Version="1.0.12"/>
-        <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0"/>
+        <PackageVersion Include="Grpc.AspNetCore" Version="2.76.0"/>
+        <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3"/>
+        <PackageVersion Include="Scalar.AspNetCore" Version="2.13.20"/>
     </ItemGroup>
 </Project>

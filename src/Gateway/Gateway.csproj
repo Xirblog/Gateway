@@ -1,17 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-    <PropertyGroup>
-      <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    </PropertyGroup>
-
     <ItemGroup>
-        <PackageReference Include="Yarp.ReverseProxy"/>
+        <PackageReference Include="Scalar.AspNetCore"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <ProjectReference Include="../Presentation/Gateway.Presentation.Rest.Users/Gateway.Presentation.Rest.Users.csproj"/>
     </ItemGroup>
 
 </Project>

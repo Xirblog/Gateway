@@ -1,27 +1,20 @@
+using Gateway.Presentation.Rest.Users.Extensions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System.IO;
+using Microsoft.Extensions.Hosting;
+using Scalar.AspNetCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile($"appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: false)
-    .AddEnvironmentVariables();
-
-builder.Services.AddHealthChecks();
-
-builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+builder.Services.AddRestUsers(builder.Configuration);
 
 WebApplication app = builder.Build();
 
-app.MapHealthChecks("/health");
-app.MapReverseProxy();
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
-app.Urls.Clear();
-app.Urls.Add($"http://*:{builder.Configuration.GetValue<int>("Port")}");
+app.MapControllers();
 
 app.Run();
