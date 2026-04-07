@@ -1,5 +1,6 @@
 using Gateway.Presentation.Rest.Users.Models;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading;
@@ -10,6 +11,7 @@ using GrpcStatusCode = Grpc.Core.StatusCode;
 
 namespace Gateway.Presentation.Rest.Users.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("users")]
 public class UsersController : ControllerBase

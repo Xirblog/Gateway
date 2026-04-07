@@ -1,6 +1,7 @@
 using AuthService.Presentation.Grpc.Protos;
 using Gateway.Presentation.Rest.Auth.Models;
 using Grpc.Core;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,10 @@ namespace Gateway.Presentation.Rest.Auth.Controllers;
 [Route("auth")]
 public class AuthController : ControllerBase
 {
+    private const string AccessTokenCookie = "access_token";
+    private const string RefreshTokenCookie = "refresh_token";
+    private const string RefreshTokenPath = "/auth/refresh";
+
     private readonly AuthClient _authClient;
 
     public AuthController(AuthClient authClient)
@@ -34,7 +39,9 @@ public class AuthController : ControllerBase
             },
             new CallOptions(cancellationToken: cancellationToken));
 
-        return Ok(new AuthTokenDto(response.AccessToken, response.RefreshToken));
+        AppendTokenCookies(response.AccessToken, response.RefreshToken);
+
+        return NoContent();
     }
 
     [HttpPost("login")]
@@ -50,7 +57,9 @@ public class AuthController : ControllerBase
                 },
                 new CallOptions(cancellationToken: cancellationToken));
 
-            return Ok(new AuthTokenDto(response.AccessToken, response.RefreshToken));
+            AppendTokenCookies(response.AccessToken, response.RefreshToken);
+
+            return NoContent();
         }
         catch (RpcException ex) when (ex.StatusCode == GrpcStatusCode.NotFound)
         {
@@ -60,5 +69,26 @@ public class AuthController : ControllerBase
         {
             return Unauthorized();
         }
+    }
+
+    private void AppendTokenCookies(string accessToken, string refreshToken)
+    {
+        var accessOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+        };
+
+        var refreshOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = RefreshTokenPath,
+        };
+
+        Response.Cookies.Append(AccessTokenCookie, accessToken, accessOptions);
+        Response.Cookies.Append(RefreshTokenCookie, refreshToken, refreshOptions);
     }
 }

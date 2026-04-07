@@ -1,5 +1,6 @@
 using Gateway.Presentation.Rest.Posts.Models;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PostService.Presentation.Grpc.Protos;
 using System;
@@ -10,6 +11,7 @@ using GrpcStatusCode = Grpc.Core.StatusCode;
 
 namespace Gateway.Presentation.Rest.Posts.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("posts")]
 public class PostsController : ControllerBase
