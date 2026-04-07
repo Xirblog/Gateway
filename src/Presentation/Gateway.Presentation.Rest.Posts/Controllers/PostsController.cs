@@ -1,9 +1,12 @@
 using Gateway.Presentation.Rest.Posts.Models;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PostService.Presentation.Grpc.Protos;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using static PostService.Presentation.Grpc.Protos.PostService;
@@ -36,7 +39,73 @@ public class PostsController : ControllerBase
             },
             new CallOptions(cancellationToken: cancellationToken));
 
-        return Created(string.Empty, new PostDto(response.PostId));
+        return Created(string.Empty, new PostDto(response.PostId, string.Empty, string.Empty, string.Empty, string.Empty, DateTime.MinValue, DateTime.MinValue));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> QueryPosts([FromQuery] QueryPostsModel model, CancellationToken cancellationToken)
+    {
+        var request = new QueryPostsRequest();
+
+        if (model.PostIds is { Count: > 0 })
+        {
+            request.PostIds.AddRange(model.PostIds);
+        }
+
+        if (model.NameSubstring is not null)
+        {
+            request.NameSubstring = model.NameSubstring;
+        }
+
+        if (model.DescriptionSubstring is not null)
+        {
+            request.DescriptionSubstring = model.DescriptionSubstring;
+        }
+
+        if (model.MarkdownContentSubstring is not null)
+        {
+            request.MarkdownContentSubstring = model.MarkdownContentSubstring;
+        }
+
+        if (model.AuthorIds is { Count: > 0 })
+        {
+            request.AuthorIds.AddRange(model.AuthorIds);
+        }
+
+        if (model.CreatedBefore is not null)
+        {
+            request.CreatedBefore = Timestamp.FromDateTime(model.CreatedBefore.Value.ToUniversalTime());
+        }
+
+        if (model.CreatedAfter is not null)
+        {
+            request.CreatedAfter = Timestamp.FromDateTime(model.CreatedAfter.Value.ToUniversalTime());
+        }
+
+        if (model.UpdatedBefore is not null)
+        {
+            request.UpdatedBefore = Timestamp.FromDateTime(model.UpdatedBefore.Value.ToUniversalTime());
+        }
+
+        if (model.UpdatedAfter is not null)
+        {
+            request.UpdatedAfter = Timestamp.FromDateTime(model.UpdatedAfter.Value.ToUniversalTime());
+        }
+
+        QueryPostsResponse response = await _postServiceClient.QueryPostsAsync(
+            request,
+            new CallOptions(cancellationToken: cancellationToken));
+
+        IEnumerable<PostDto> posts = response.Posts.Select(p => new PostDto(
+            p.PostId,
+            p.Name,
+            p.Description,
+            p.MarkdownContent,
+            p.AuthorId,
+            p.CreatedAt.ToDateTime(),
+            p.UpdatedAt.ToDateTime()));
+
+        return Ok(posts);
     }
 
     [HttpPut("{userId}")]
