@@ -7,6 +7,7 @@
     <ItemGroup>
         <ProjectReference Include="../Presentation/Gateway.Presentation.Rest.Users/Gateway.Presentation.Rest.Users.csproj"/>
         <ProjectReference Include="../Presentation/Gateway.Presentation.Rest.Posts/Gateway.Presentation.Rest.Posts.csproj"/>
+        <ProjectReference Include="../Presentation/Gateway.Presentation.Rest.Auth/Gateway.Presentation.Rest.Auth.csproj"/>
     </ItemGroup>
 
 </Project>

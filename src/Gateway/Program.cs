@@ -1,3 +1,4 @@
+using Gateway.Presentation.Rest.Auth.Extensions;
 using Gateway.Presentation.Rest.Posts.Extensions;
 using Gateway.Presentation.Rest.Users.Extensions;
 using Microsoft.AspNetCore.Builder;
@@ -7,6 +8,7 @@ using Scalar.AspNetCore;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services
+    .AddRestAuth(builder.Configuration)
     .AddRestUsers(builder.Configuration)
     .AddRestPosts(builder.Configuration);
 

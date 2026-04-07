@@ -11,6 +11,7 @@
   </Folder>
     
     <Folder Name="/src/Presentation/">
+      <Project Path="src/Presentation/Gateway.Presentation.Rest.Auth/Gateway.Presentation.Rest.Auth.csproj" />
       <Project Path="src/Presentation/Gateway.Presentation.Rest.Posts/Gateway.Presentation.Rest.Posts.csproj" />
       <Project Path="src\Presentation\Gateway.Presentation.Rest.Users\Gateway.Presentation.Rest.Users.csproj" />
     </Folder>
