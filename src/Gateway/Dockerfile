@@ -12,6 +12,7 @@ COPY ["Directory.Packages.props", "src/Directory.Packages.props"]
 COPY ["src/Gateway/Gateway.csproj", "src/Gateway/"]
 COPY ["src/Presentation/Gateway.Presentation.Rest.Posts/Gateway.Presentation.Rest.Posts.csproj", "src/Presentation/Gateway.Presentation.Rest.Posts/"]
 COPY ["src/Presentation/Gateway.Presentation.Rest.Users/Gateway.Presentation.Rest.Users.csproj", "src/Presentation/Gateway.Presentation.Rest.Users/"]
+COPY ["src/Presentation/Gateway.Presentation.Rest.Auth/Gateway.Presentation.Rest.Auth.csproj", "src/Presentation/Gateway.Presentation.Rest.Auth/"]
 RUN dotnet restore "src/Gateway/Gateway.csproj"
 COPY . .
 WORKDIR "/src/src/Gateway"
