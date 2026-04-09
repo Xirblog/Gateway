@@ -7,6 +7,7 @@ using PostService.Presentation.Grpc.Protos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using static PostService.Presentation.Grpc.Protos.PostService;
@@ -29,13 +30,20 @@ public class PostsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreatePost([FromBody] CreatePostModel model, CancellationToken cancellationToken)
     {
+        string? authorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(authorId))
+        {
+            return Forbid();
+        }
+
         CreatePostResponse response = await _postServiceClient.CreatePostAsync(
             new CreatePostRequest
             {
                 Name = model.Name,
                 Description = model.Description,
                 MarkdownContent = model.MarkdownContent,
-                AuthorId = model.AuthorId,
+                AuthorId = authorId,
             },
             new CallOptions(cancellationToken: cancellationToken));
 
