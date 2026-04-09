@@ -47,7 +47,39 @@ public class PostsController : ControllerBase
             },
             new CallOptions(cancellationToken: cancellationToken));
 
-        return Created(string.Empty, new PostDto(response.PostId, string.Empty, string.Empty, string.Empty, string.Empty, DateTime.MinValue, DateTime.MinValue));
+        return Created(
+            string.Empty,
+            new PostDto(
+                response.PostId,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                DateTime.MinValue,
+                DateTime.MinValue));
+    }
+
+    [HttpGet("{post_id}")]
+    public async Task<IActionResult> FindById(Guid postId, CancellationToken cancellationToken)
+    {
+        var request = new QueryPostsRequest();
+
+        request.PostIds.Add(postId.ToString());
+
+        QueryPostsResponse response = await _postServiceClient.QueryPostsAsync(
+            request,
+            new CallOptions(cancellationToken: cancellationToken));
+
+        IEnumerable<PostDto> posts = response.Posts.Select(p => new PostDto(
+            p.PostId,
+            p.Name,
+            p.Description,
+            p.MarkdownContent,
+            p.AuthorId,
+            p.CreatedAt.ToDateTime(),
+            p.UpdatedAt.ToDateTime()));
+
+        return Ok(posts);
     }
 
     [HttpGet]
