@@ -3,6 +3,7 @@ using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using UserService.Presentation.Grpc.Protos;
@@ -43,6 +44,34 @@ public class UsersController : ControllerBase
                 response.FirstName,
                 response.LastName,
                 response.Age));
+    }
+
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMe(CancellationToken cancellationToken)
+    {
+        string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return NotFound("User ID claim not found in the token.");
+        }
+
+        try
+        {
+            FindUserByIdResponse response = await _userServiceClient.FindUserByIdAsync(
+                new FindUserByIdRequest { UserId = userId },
+                new CallOptions(cancellationToken: cancellationToken));
+
+            return Ok(new UserDto(
+                response.UserId,
+                response.FirstName,
+                response.LastName,
+                response.Age));
+        }
+        catch (RpcException ex) when (ex.StatusCode == GrpcStatusCode.NotFound)
+        {
+            return NotFound();
+        }
     }
 
     [HttpGet("{userId}")]
