@@ -59,7 +59,7 @@ public class PostsController : ControllerBase
                 DateTime.MinValue));
     }
 
-    [HttpGet("{post_id}")]
+    [HttpGet("{postId:guid}")]
     public async Task<IActionResult> FindById(Guid postId, CancellationToken cancellationToken)
     {
         var request = new QueryPostsRequest();
@@ -70,16 +70,17 @@ public class PostsController : ControllerBase
             request,
             new CallOptions(cancellationToken: cancellationToken));
 
-        IEnumerable<PostDto> posts = response.Posts.Select(p => new PostDto(
-            p.PostId,
-            p.Name,
-            p.Description,
-            p.MarkdownContent,
-            p.AuthorId,
-            p.CreatedAt.ToDateTime(),
-            p.UpdatedAt.ToDateTime()));
+        PostDto post = response.Posts.Select(p => new PostDto(
+                p.PostId,
+                p.Name,
+                p.Description,
+                p.MarkdownContent,
+                p.AuthorId,
+                p.CreatedAt.ToDateTime(),
+                p.UpdatedAt.ToDateTime()))
+            .Single();
 
-        return Ok(posts);
+        return Ok(post);
     }
 
     [HttpGet]
@@ -148,15 +149,15 @@ public class PostsController : ControllerBase
         return Ok(posts);
     }
 
-    [HttpPut("{userId}")]
+    [HttpPut("{postId:guid}")]
     public async Task<IActionResult> UpdatePost(
-        Guid userId,
+        Guid postId,
         [FromBody] UpdatePostModel model,
         CancellationToken cancellationToken)
     {
         try
         {
-            var request = new UpdatePostRequest { PostId = userId.ToString() };
+            var request = new UpdatePostRequest { PostId = postId.ToString() };
 
             if (model.Name is not null)
             {
@@ -185,13 +186,13 @@ public class PostsController : ControllerBase
         }
     }
 
-    [HttpDelete("{userId}")]
-    public async Task<IActionResult> DeletePost(Guid userId, CancellationToken cancellationToken)
+    [HttpDelete("{postId:guid}")]
+    public async Task<IActionResult> DeletePost(Guid postId, CancellationToken cancellationToken)
     {
         try
         {
             DeletePostResponse response = await _postServiceClient.DeletePostAsync(
-                new DeletePostRequest { PostId = userId.ToString() },
+                new DeletePostRequest { PostId = postId.ToString() },
                 new CallOptions(cancellationToken: cancellationToken));
 
             return response.Success ? NoContent() : NotFound();
