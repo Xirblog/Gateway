@@ -1,0 +1,205 @@
+using BlogGateway.Presentation.Rest.Posts.Models;
+using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PostService.Presentation.Grpc.Protos;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
+using static PostService.Presentation.Grpc.Protos.PostService;
+using GrpcStatusCode = Grpc.Core.StatusCode;
+
+namespace BlogGateway.Presentation.Rest.Posts.Controllers;
+
+[Authorize]
+[ApiController]
+[Route("posts")]
+public class PostsController : ControllerBase
+{
+    private readonly PostServiceClient _postServiceClient;
+
+    public PostsController(PostServiceClient postServiceClient)
+    {
+        _postServiceClient = postServiceClient;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreatePost([FromBody] CreatePostModel model, CancellationToken cancellationToken)
+    {
+        string? authorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(authorId))
+        {
+            return Forbid();
+        }
+
+        CreatePostResponse response = await _postServiceClient.CreatePostAsync(
+            new CreatePostRequest
+            {
+                Name = model.Name,
+                Description = model.Description,
+                MarkdownContent = model.MarkdownContent,
+                AuthorId = authorId,
+            },
+            new CallOptions(cancellationToken: cancellationToken));
+
+        return Created(
+            string.Empty,
+            new PostDto(
+                response.PostId,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                DateTime.MinValue,
+                DateTime.MinValue));
+    }
+
+    [HttpGet("{postId:guid}")]
+    public async Task<IActionResult> FindById(Guid postId, CancellationToken cancellationToken)
+    {
+        var request = new QueryPostsRequest();
+
+        request.PostIds.Add(postId.ToString());
+
+        QueryPostsResponse response = await _postServiceClient.QueryPostsAsync(
+            request,
+            new CallOptions(cancellationToken: cancellationToken));
+
+        PostDto post = response.Posts.Select(p => new PostDto(
+                p.PostId,
+                p.Name,
+                p.Description,
+                p.MarkdownContent,
+                p.AuthorId,
+                p.CreatedAt.ToDateTime(),
+                p.UpdatedAt.ToDateTime()))
+            .Single();
+
+        return Ok(post);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> QueryPosts([FromQuery] QueryPostsModel model, CancellationToken cancellationToken)
+    {
+        var request = new QueryPostsRequest();
+
+        if (model.PostIds is { Count: > 0 })
+        {
+            request.PostIds.AddRange(model.PostIds);
+        }
+
+        if (model.NameSubstring is not null)
+        {
+            request.NameSubstring = model.NameSubstring;
+        }
+
+        if (model.DescriptionSubstring is not null)
+        {
+            request.DescriptionSubstring = model.DescriptionSubstring;
+        }
+
+        if (model.MarkdownContentSubstring is not null)
+        {
+            request.MarkdownContentSubstring = model.MarkdownContentSubstring;
+        }
+
+        if (model.AuthorIds is { Count: > 0 })
+        {
+            request.AuthorIds.AddRange(model.AuthorIds);
+        }
+
+        if (model.CreatedBefore is not null)
+        {
+            request.CreatedBefore = Timestamp.FromDateTime(model.CreatedBefore.Value.ToUniversalTime());
+        }
+
+        if (model.CreatedAfter is not null)
+        {
+            request.CreatedAfter = Timestamp.FromDateTime(model.CreatedAfter.Value.ToUniversalTime());
+        }
+
+        if (model.UpdatedBefore is not null)
+        {
+            request.UpdatedBefore = Timestamp.FromDateTime(model.UpdatedBefore.Value.ToUniversalTime());
+        }
+
+        if (model.UpdatedAfter is not null)
+        {
+            request.UpdatedAfter = Timestamp.FromDateTime(model.UpdatedAfter.Value.ToUniversalTime());
+        }
+
+        QueryPostsResponse response = await _postServiceClient.QueryPostsAsync(
+            request,
+            new CallOptions(cancellationToken: cancellationToken));
+
+        IEnumerable<PostDto> posts = response.Posts.Select(p => new PostDto(
+            p.PostId,
+            p.Name,
+            p.Description,
+            p.MarkdownContent,
+            p.AuthorId,
+            p.CreatedAt.ToDateTime(),
+            p.UpdatedAt.ToDateTime()));
+
+        return Ok(posts);
+    }
+
+    [HttpPut("{postId:guid}")]
+    public async Task<IActionResult> UpdatePost(
+        Guid postId,
+        [FromBody] UpdatePostModel model,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new UpdatePostRequest { PostId = postId.ToString() };
+
+            if (model.Name is not null)
+            {
+                request.Name = model.Name;
+            }
+
+            if (model.Description is not null)
+            {
+                request.Description = model.Description;
+            }
+
+            if (model.MarkdownContent is not null)
+            {
+                request.MarkdownContent = model.MarkdownContent;
+            }
+
+            UpdatePostResponse response = await _postServiceClient.UpdatePostAsync(
+                request,
+                new CallOptions(cancellationToken: cancellationToken));
+
+            return response.Success ? NoContent() : NotFound();
+        }
+        catch (RpcException ex) when (ex.StatusCode == GrpcStatusCode.NotFound)
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpDelete("{postId:guid}")]
+    public async Task<IActionResult> DeletePost(Guid postId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            DeletePostResponse response = await _postServiceClient.DeletePostAsync(
+                new DeletePostRequest { PostId = postId.ToString() },
+                new CallOptions(cancellationToken: cancellationToken));
+
+            return response.Success ? NoContent() : NotFound();
+        }
+        catch (RpcException ex) when (ex.StatusCode == GrpcStatusCode.NotFound)
+        {
+            return NotFound();
+        }
+    }
+}

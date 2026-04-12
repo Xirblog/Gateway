@@ -1,0 +1,19 @@
+<Solution>
+  
+  <Folder Name="/common/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path=".editorconfig" />
+  </Folder>
+  
+  <Folder Name="/src/">
+    <Project Path="src\BlogGateway\BlogGateway.csproj" />
+  </Folder>
+    
+    <Folder Name="/src/Presentation/">
+      <Project Path="src\Presentation\BlogGateway.Presentation.Rest.Auth\BlogGateway.Presentation.Rest.Auth.csproj" />
+      <Project Path="src\Presentation\BlogGateway.Presentation.Rest.Posts\BlogGateway.Presentation.Rest.Posts.csproj" />
+      <Project Path="src\Presentation\BlogGateway.Presentation.Rest.Users\BlogGateway.Presentation.Rest.Users.csproj" />
+    </Folder>
+  
+</Solution>
