@@ -28,20 +28,31 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model, CancellationToken cancellationToken)
     {
-        RegisterResponse response = await _authClient.RegisterAsync(
-            new RegisterRequest
-            {
-                Username = model.Username,
-                Password = model.Password,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                Age = model.Age,
-            },
-            new CallOptions(cancellationToken: cancellationToken));
+        try
+        {
+            RegisterResponse response = await _authClient.RegisterAsync(
+                new RegisterRequest
+                {
+                    Username = model.Username,
+                    Password = model.Password,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Age = model.Age,
+                },
+                new CallOptions(cancellationToken: cancellationToken));
 
-        AppendTokenCookies(response.AccessToken, response.RefreshToken);
+            AppendTokenCookies(response.AccessToken, response.RefreshToken);
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (RpcException ex) when (ex.StatusCode == GrpcStatusCode.AlreadyExists)
+        {
+            return Conflict();
+        }
+        catch (RpcException ex) when (ex.StatusCode == GrpcStatusCode.Unavailable)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
     }
 
     [HttpPost("login")]
